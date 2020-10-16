@@ -7,7 +7,9 @@
 
 This miner has been enhanced with some great features, you can read more about them under the section **Getting Started**.
 
-For the official version from OpenOrchard, go [here](https://github.com/open-orchard/koinos-miner). And yes, OpenOrchard have given their green-light for the idea behind this miner version! 👍 They however have not verified nor checked the code. I'm using it extensively myself, but there *could* be bugs.
+For the official version from OpenOrchard, please go [here](https://github.com/open-orchard/koinos-miner). 
+
+OpenOrchard have given their green-light for the idea behind this miner version! 👍 They, however, have not verified nor checked the code nor are they affiliated with this version. I am using it extensively myself, but there *could* be bugs.
 
 ## Table of Contents
   - [Dependencies](#dependencies)
