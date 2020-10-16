@@ -289,7 +289,7 @@ module.exports = class KoinosMiner {
 
    async onRespFinished(req) {
       console.log("[JS] Finished!");
-      self.finishedCallback(warning);
+      this.finishedCallback();
       this.endTime = Date.now();
       this.adjustDifficulty();
       this.sendMiningRequest();
@@ -360,7 +360,7 @@ module.exports = class KoinosMiner {
       if(this.speed) {
          try {
             const {data} = await axios.get('https://fees.upvest.co/estimate_eth_fees'); 
-            speedGwei = data.estimates[this.speed] || data.estimates[DEFAULT_SPEED];
+            speedGwei = Math.round(data.estimates[this.speed] || data.estimates[DEFAULT_SPEED]);
             console.log(`[GAS] Estimated ${this.speed || DEFAULT_SPEED} gas price: ${speedGwei} Gwei`);
          } catch (error) {
             console.error('axios', error);
@@ -393,7 +393,7 @@ module.exports = class KoinosMiner {
       // user sets gwei limit => use gwei limit
       // user doesn't set anything => use gwei limit (gwei is easier to read)
 
-      if ((!isDefaultSettings || wasGweiLimitModified) && gwei > gweiLimit) {
+      if ((isDefaultSettings || wasGweiLimitModified) && gwei > gweiLimit) {
          console.log(`[GAS] Gwei limit reached: (${gwei} | ${gweiLimit})`);
          let error = {
             kMessage: "The gwei price (" + gwei + ") has exceeded the gwei price limit (" + gweiLimit + ")."

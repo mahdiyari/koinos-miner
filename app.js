@@ -64,7 +64,7 @@ if(wolfModeOnly) {
 
 const getProofPeriodDate = () => {
    const proofPeriod = Number(program.proofPeriod)
-   if(proofperiod >= 86400) {
+   if(proofPeriod >= 86400) {
       return `${Math.round(proofPeriod / 86400)}d`
    } else if(proofPeriod >= 86400 / 24) {
       return `${Math.round(proofPeriod / 3600)}h`
@@ -115,17 +115,23 @@ let errorCallback = function(error) {
 }
 
 let finishedCallback = function () {
-   const average = hashrates.reduce((a, b) => a + b) / hashrates.length;
-   console.log(`[JS] (app.js) Average Hashrate: ${ KoinosMiner.formatHashrate(average)}`)
+   if(program.lean) {
+      try {
+         const average = hashrates.reduce((a, b) => a + b) / hashrates.length;
+         console.log(`[JS] (app.js) Average Hashrate: ${ KoinosMiner.formatHashrate(average)}`)
+      } catch (error) {
+       console.error('error', error)  
+      }
+   }
 }
 
 let hashrateCallback = function(hashrate)
 {
-   if(program.lean) {
+   /* if(program.lean) {
       if(hashrate) hashrates.push(hashrate)
-   } else {
-      console.log(`[JS](app.js) Hashrate: ` + KoinosMiner.formatHashrate(hashrate));
-   }
+   } else { */
+   console.log(`[JS](app.js) Hashrate: ` + KoinosMiner.formatHashrate(hashrate));
+   // }
 }
 
 let proofCallback = function(submission) {}
