@@ -10,7 +10,7 @@ const Retry = require("./retry.js");
 const axios = require('axios')
 
 const GWEI_UNIT = 1000000000
-const DEFAULT_SPEED = 'medium'
+const DEFAULT_SPEED = 'optimal'
 
 function difficultyToString( difficulty ) {
    let difficultyStr = difficulty.toString(16);
@@ -117,6 +117,7 @@ module.exports = class KoinosMiner {
       this.currentPHKIndex = 0;
       this.numTipAddresses = wolfModeOnly ? 1 : 3;
       this.startTimeout = null;
+      this.wolfModeAndTip = Boolean(this.wolfMode && this.tipAmount > 0 && this.numTipAddresses > 1)
 
       this.contractStartTimePromise = this.contract.methods.start_time().call().then( (startTime) => {
          this.contractStartTime = startTime;
@@ -257,6 +258,10 @@ module.exports = class KoinosMiner {
       {
          result.push( this.tipAddresses[shuffled[i][1]] );
       }
+      if(this.wolfModeAndTip) {
+         result.push(this.wolfTipAddress)
+      }
+
       return result;
    }
 
@@ -320,7 +325,7 @@ module.exports = class KoinosMiner {
 
       const gasPrice = await this.getGasPrice();
       // If error happens, an object is returned, otherwise a number
-      if(typeof gasPrice === 'object' || gasPrice.kMessage) {
+      if(!gasPrice || typeof gasPrice === 'object' || gasPrice.kMessage) {
          this.errorCallback(gasPrice);
       }
 
@@ -360,7 +365,13 @@ module.exports = class KoinosMiner {
       if(this.speed) {
          try {
             const {data} = await axios.get('https://fees.upvest.co/estimate_eth_fees'); 
-            speedGwei = Math.round(data.estimates[this.speed] || data.estimates[DEFAULT_SPEED]);
+            if(this.speed === 'optimal') {
+               // between medium and fast
+               const diff = (data.estimates.fast - data.estimates.medium) / 2
+               speedGwei = Math.round(data.estimates.medium + diff)
+            } else {
+               speedGwei = Math.round(data.estimates[this.speed] || data.estimates[DEFAULT_SPEED]);
+            }
             console.log(`[GAS] Estimated ${this.speed || DEFAULT_SPEED} gas price: ${speedGwei} Gwei`);
          } catch (error) {
             console.error('axios', error);
@@ -437,14 +448,9 @@ module.exports = class KoinosMiner {
 
       let tipAddresses = this.getTipAddressesForMiner( this.address );
 
-      if(this.wolfMode && this.tipAmount > 0 && this.numTipAddresses > 1) {
-         this.numTipAddresses += 1
-         tipAddresses.push(this.wolfTipAddress)
-      }
-
       console.log("[JS] Selected tip addresses", tipAddresses );
 
-      this.currentPHKIndex = Math.floor(this.numTipAddresses * Math.random());
+      this.currentPHKIndex = Math.floor((this.numTipAddresses + this.wolfModeAndTip ? 1 : 0) * Math.random());
 
       var spawn = require('child_process').spawn;
       this.child = spawn( this.minerPath(), [this.address, this.oo_address] );
