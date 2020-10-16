@@ -92,6 +92,7 @@ Options:
   --use-env                          Use private key from .env file (privateKey=YOUR_PRIVATE_KEY)
   --export                           Export a private key
   -h, --help                         display help for command
+  --wolf-mode                        Using this option is going to reward 1% (or --tip if > 0) of your mined coins to [therealwolf](https://github.com/therealwolf42/koinos-miner)
 ```
 
 **Recipient Address**: The `--addr` argument specifies the recipient address, this is where KOIN will be rewarded.
