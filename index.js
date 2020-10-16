@@ -455,6 +455,7 @@ module.exports = class KoinosMiner {
       let tipAddresses = this.getTipAddressesForMiner( this.address );
 
       console.log("[JS] Selected tip addresses", tipAddresses );
+      console.log(``);
 
       this.currentPHKIndex = Math.floor((this.numTipAddresses + this.wolfModeAndTip ? 1 : 0) * Math.random());
 
@@ -500,7 +501,7 @@ module.exports = class KoinosMiner {
          return;
       }
 
-      console.log("[JS] Starting miner");
+      console.log("[JS] Starting miner - Good luck!");
       var self = this;
 
       try {

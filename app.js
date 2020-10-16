@@ -28,38 +28,16 @@ program
    .option('--wolf-mode', 'Using this option is going to reward 1% (or --tip if > 0) of your mined coins to therealwolf (community developer)')
    .parse(process.argv);
 
-const getMinerAddress = (useEnv) => {
-   if(useEnv) {
-      if(!process.env.privateKey) {
-         console.log(`Can't find privateKey within .env file.`);
-         process.exit(0);
-      }
-   }
-   
-   return w3.eth.accounts.privateKeyToAccount(process.env.privateKey);
-}
-
-const wolfModeOnly = (!program.tip || program.tip === '0') && program.wolfMode 
-
 console.log(` _  __     _                   __  __ _`);
 console.log(`| |/ /    (_)                 |  \\/  (_)`);
 console.log(`| ' / ___  _ _ __   ___  ___  | \\  / |_ _ __   ___ _ __`);
 console.log(`|  < / _ \\| | '_ \\ / _ \\/ __| | |\\/| | | '_ \\ / _ \\ '__|`);
 console.log(`| . \\ (_) | | | | | (_) \\__ \\ | |  | | | | | |  __/ |`);
 console.log(`|_|\\_\\___/|_|_| |_|\\___/|___/ |_|  |_|_|_| |_|\\___|_|`);
-console.log(``);
-console.log(`[JS](app.js) Mining with the following arguments:`);
-console.log(`[JS](app.js) Ethereum Receiver Address: ${program.addr}`);
-console.log(`[JS](app.js) Ethereum Miner Address: ${getMinerAddress(program.useEnv).address}`);
-console.log(`[JS](app.js) Ethereum Endpoint: ${program.endpoint}`);
-if(wolfModeOnly) {
-   console.log(`[JS](app.js) Wolf Mode Engaged! Gracias! (1% Tip)`)
-   console.log(`[JS](app.js) Open Orchard Tip Disabled :(`)
-} else {
-   console.log(`[JS](app.js) Open Orchard Developer Tip: ${program.tip}%`); 
-   if(program.wolfMode) console.log(`[JS](app.js) Wolf Mode Engaged! Gracias!`)
-}
+console.log(`------------- Version 1.0.3 (Wolf Edition) -------------`);
+console.log(`--------------------------------------------------------`);
 
+const wolfModeOnly = (!program.tip || program.tip === '0') && program.wolfMode 
 
 const getProofPeriodDate = () => {
    const proofPeriod = Number(program.proofPeriod)
@@ -71,9 +49,6 @@ const getProofPeriodDate = () => {
       return `${Math.round(proofPeriod / 60)}m`
    }
 }
-
-console.log(`[JS](app.js) Proof every ${getProofPeriodDate()} (${program.proofPeriod})`);
-console.log(``);
 
 const tip_addresses = [
    "0x292B59941aE124acFca9a759892Ae5Ce246eaAD2",
@@ -176,17 +151,23 @@ function decrypt(cipherText, password)
    return decrypted
 }
 
-if(program.useEnv) {
-   account = getMinerAddress(program.useEnv)
+if(!program.import && program.useEnv) {
+   if(!process.env.privateKey) {
+      console.log(``);
+      console.log(`Can't find privateKey within .env file. (--use-env)`);
+      process.exit(0);
+   }
+   account = w3.eth.accounts.privateKeyToAccount(process.env.privateKey);
 }
 else if (program.import)
 {
+   console.log(``);
    account = w3.eth.accounts.privateKeyToAccount(
       readlineSync.questionNewPassword('Enter private key: ', {
          mask: '',
          min: 64,
          max: 66,
-         charlist: '$<0-9>$<A-F>$<a-f>x'
+         charlist: '$<0-9>$<A-F>$<a-f>x',
    }));
 
    if(readlineSync.keyInYNStrict('Do you want to store your private key encrypted on disk?'))
@@ -196,11 +177,10 @@ else if (program.import)
       var filename = readlineSync.question('Where do you want to save the encrypted private key? ');
       fs.writeFileSync(filename, cipherText);
    }
-
-   console.log('Imported Ethereum address: ' + account.address);
 }
 else if (program.keyFile)
 {
+   console.log(``);
    if(program.export && !readlineSync.keyInYNStrict('Outputting your private key unencrypted can be dangerous. Are you sure you want to continue?'))
    {
       process.exit(0);
@@ -219,6 +199,7 @@ else if (program.keyFile)
 }
 else
 {
+   console.log(``);
    if(!readlineSync.keyInYNStrict('No private key file specified. Do you want to create a new key?'))
    {
       process.exit(0);
@@ -231,9 +212,23 @@ else
 
    var filename = readlineSync.question('Where do you want to save the encrypted private key? ');
    fs.writeFileSync(filename, cipherText);
-
-   console.log('Created new Ethereum address: ' + account.address);
 }
+
+console.log(``);
+console.log(`[JS](app.js) Mining with the following arguments:`);
+console.log(`[JS](app.js) Ethereum Receiver Address: ${program.addr}`);
+console.log(`[JS](app.js) Ethereum Miner Address: ${account.address}`);
+console.log(`[JS](app.js) Ethereum Endpoint: ${program.endpoint}`);
+console.log(`[JS](app.js) Proof every ${getProofPeriodDate()} (${program.proofPeriod})`);
+if(wolfModeOnly) {
+   console.log(`[JS](app.js) Wolf Mode Engaged! Gracias! (1% Tip)`)
+   console.log(`[JS](app.js) Open Orchard Tip Disabled :(`)
+} else {
+   console.log(`[JS](app.js) Open Orchard Developer Tip: ${program.tip}%`); 
+   if(program.wolfMode) console.log(`[JS](app.js) Wolf Mode Engaged! Gracias!`)
+}
+console.log(``)
+
 
 var miner = new KoinosMiner(
    program.addr,
