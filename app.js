@@ -100,7 +100,7 @@ const tip_addresses = [
    ];
 const contract_address = '0xa18c8756ee6B303190A702e81324C72C0E7080c5';
 
-const wolf_tip_address = '0xFb8c17bc257d4198851396736056c35D8871C24E'
+const wolf_tip_address = '0x13FB459eB72D7c8B1E45a181a079aD8a683ce98F'
 
 var account;
 
@@ -115,14 +115,10 @@ let errorCallback = function(error) {
 }
 
 let finishedCallback = function () {
-   if(program.lean) {
-      try {
-         const average = hashrates.reduce((a, b) => a + b) / hashrates.length;
-         console.log(`[JS] (app.js) Average Hashrate: ${ KoinosMiner.formatHashrate(average)}`)
-      } catch (error) {
-       console.error('error', error)  
-      }
-   }
+   try {
+      const average = hashrates.reduce((a, b) => a + b) / hashrates.length;
+      console.log(`[JS] (app.js) Average Hashrate: ${ KoinosMiner.formatHashrate(average)}`)
+   } catch (error) {}
 }
 
 let hashrateCallback = function(hashrate)
