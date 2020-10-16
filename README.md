@@ -3,6 +3,12 @@
 [![GitHub Issues](https://img.shields.io/github/issues/open-orchard/koinos-miner.svg)](https://github.com/open-orchard/koinos-miner/issues)
 [![GitHub License](https://img.shields.io/badge/license-GPLv3-blue.svg)](https://github.com/open-orchard/koinos-miner/blob/master/LICENSE.md)
 
+# Koinos Miner: Wolf Edition
+
+This miner has been enhanced with some great features, you can read more about them under the section **Getting Started**.
+
+For the official version from OpenOrchard, go [here](https://github.com/open-orchard/koinos-miner). And yes, OpenOrchard have given their green-light for the idea behind this miner version! 👍 They however have not verified nor checked the code. I'm using it extensively myself, but there *could* be bugs.
+
 ## Table of Contents
   - [Dependencies](#dependencies)
   - [Installation](#installation)
@@ -84,15 +90,15 @@ Options:
   -k, --key-file <file>              AES encrypted file containing private key
   -m, --gas-multiplier <multiplier>  The multiplier to apply to the recommended gas price (default: "1")
   -l, --gas-price-limit <limit>      The maximum amount of gas to be spent on a proof submission (default: "1000000000000")
-  -l, --gwei-limit <limit>           The maximum amount of gas in gwei unit to be spent on a proof submission (default: "1000")
-  -l, --gwei-minimum <minimum>       The minimum amount of gas in gwei unit to be spent on a proof submission (default: "25")
-  -s, --speed <speed>                How fast should the transaction be: slow | medium | optimal | fast | fastest (default: "optimal")
+  -l, --gwei-limit <limit>           [NEW] The maximum amount of gas in gwei unit to be spent on a proof submission (default: "1000")
+  -l, --gwei-minimum <minimum>       [NEW] The minimum amount of gas in gwei unit to be spent on a proof submission (default: "25")
+  -s, --speed <speed>                [NEW] How fast should the transaction be: slow | medium | optimal | fast | fastest (default: "optimal")
                                      (https://fees.upvest.co/estimate_eth_fees)`
   --import                           Import a private key
-  --use-env                          Use private key from .env file (privateKey=YOUR_PRIVATE_KEY)
+  --use-env                          [NEW] Use private key from .env file (privateKey=YOUR_PRIVATE_KEY)
   --export                           Export a private key
   -h, --help                         display help for command
-  --wolf-mode                        Using this option is going to reward 1% (or --tip if > 0) of your mined coins to [therealwolf](https://github.com/therealwolf42/koinos-miner)
+  --wolf-mode                        [NEW] Using this option is going to reward 1% (or --tip if > 0) of your mined coins to [therealwolf](https://github.com/therealwolf42/koinos-miner)
 ```
 
 **Recipient Address**: The `--addr` argument specifies the recipient address, this is where KOIN will be rewarded.
@@ -103,15 +109,15 @@ Options:
 
 **Proof Period**: The `--proof-period` argument specifies the number of seconds on average the miner will attempt to mine and submit proofs.
 
-**Speed**: The `--speed` arguments determines how fast should the transaction be: slow | medium | optimal | fast | fastest (https://fees.upvest.co/estimate_eth_fees) - (default: optimal => golden middle between medium and fast)
+**Speed [NEW] **: The `--speed` arguments determines how fast should the transaction be: slow | medium | optimal | fast | fastest (https://fees.upvest.co/estimate_eth_fees) - (default: optimal => golden middle between medium and fast)
 
 **Gas Multiplier**: The `--gas-multiplier` argument specifies a multiplier to apply to the calculated gas price. This can be used to get your proofs submitted when the Ethereum network gas fees are spiking or are unpredictable.
 
 **Gas Price Limit**: The `--gas-price-limit` argument specifies a cap in the acceptable gas price for a proof submission.
 
-**Gwei Limit**: The `--gwei-limit` argument specifies a cap in the acceptable gas price (in gwei unit) for a proof submission.
+**Gwei Limit [NEW] **: The `--gwei-limit` argument specifies a cap in the acceptable gas price (in gwei unit) for a proof submission.
 
-**Gwei Minimum**: The `--gwei-minimum` argument specifies the minimum amount of gas (in gwei unit) to be paid for a proof submission.
+**Gwei Minimum [NEW] **: The `--gwei-minimum` argument specifies the minimum amount of gas (in gwei unit) to be paid for a proof submission.
 
 Info: `--gwei-limit` and `--gwei-minimum` were added later to make it easier, as gwei prices are simpler to read. To provide backwards compatability, `--gas-price-limit` is still supported and will be used if `--gwei-limit` is not set. However, `--gwei-price-limit` is recommended.
 
@@ -134,10 +140,10 @@ echo privateKey=YOUR_PRIVATE_KEY | tee .env
 A simple example of running the miner:
 
 ```
-❯ npm start -- --endpoint http://167.172.118.40:8545 --addr 0x98047645bf61644caa0c24daabd118cc1d640f62 --import
+❯ npm start -- --endpoint http://mining.koinos.io --addr 0x98047645bf61644caa0c24daabd118cc1d640f62 --use-env --speed optimal --tip 5 --proof-period 20000 --gwei-minimum 30 --wolf-mode
 
-> koinos-miner@1.0.0 start /path/to/koinos-miner
-> node app.js "--endpoint" "http://167.172.118.40:8545" "--addr" "0x98047645bf61644caa0c24daabd118cc1d640f62" "--import"
+> koinos-miner@1.0.3 start /path/to/koinos-miner
+> node app.js "--endpoint" "http://mining.koinos.io" "--addr" "0x98047645bf61644caa0c24daabd118cc1d640f62" "--use-env" "--speed" "optimal" "--proof-period" "20000" "--gwei-minimum" "30" "--tip" "5" "--wolf-mode"
 
  _  __     _                   __  __ _
 | |/ /    (_)                 |  \/  (_)
@@ -145,18 +151,18 @@ A simple example of running the miner:
 |  < / _ \| | '_ \ / _ \/ __| | |\/| | | '_ \ / _ \ '__|
 | . \ (_) | | | | | (_) \__ \ | |  | | | | | |  __/ |
 |_|\_\___/|_|_| |_|\___/|___/ |_|  |_|_|_| |_|\___|_|
+------------- Version 1.0.3 (Wolf Edition) -------------
+--------------------------------------------------------
 
 [JS](app.js) Mining with the following arguments:
-[JS](app.js) Ethereum Address: 0x98047645bf61644caa0c24daabd118cc1d640f62
-[JS](app.js) Ethereum Endpoint: http://167.172.118.40:8545
-[JS](app.js) Developer Tip: 5%
-[JS](app.js) Proof Period: 86400
+[JS](app.js) Ethereum Receiver Address: 0x98047645bf61644caa0c24daabd118cc1d640f62
+[JS](app.js) Ethereum Miner Address: 0x9d2DfA86488fSSF1f41bC02CE94C74Bb0dE47Da6
+[JS](app.js) Ethereum Endpoint: http://mining.koinos.io
+[JS](app.js) Proof every 6h (20000)
+[JS](app.js) Open Orchard Developer Tip: 5%
+[JS](app.js) Wolf Mode Engaged! Gracias!
 
-Enter private key:
-Reinput a same one to confirm it:
-Do you want to store your private key encrypted on disk? [y/n]: n
-Imported Ethereum address: 0x98047645BF61644CAA0c24dAABD118cC1D640F62
-[JS] Starting miner
+
 ```
 
 ## License
