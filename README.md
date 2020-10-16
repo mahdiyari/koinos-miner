@@ -103,6 +103,8 @@ Options:
 
 **Proof Period**: The `--proof-period` argument specifies the number of seconds on average the miner will attempt to mine and submit proofs.
 
+**Speed**: The `--speed` arguments determines how fast should the transaction be: slow | medium | fast | fastest (https://fees.upvest.co/estimate_eth_fees)
+
 **Gas Multiplier**: The `--gas-multiplier` argument specifies a multiplier to apply to the calculated gas price. This can be used to get your proofs submitted when the Ethereum network gas fees are spiking or are unpredictable.
 
 **Gas Price Limit**: The `--gas-price-limit` argument specifies a cap in the acceptable gas price for a proof submission.
