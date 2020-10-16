@@ -83,13 +83,15 @@ module.exports = class KoinosMiner {
    child = null;
    contract = null;
 
-   constructor(address, tipAddresses, fromAddress, contractAddress, endpoint, tipAmount, period, gasMultiplier, gasPriceLimit, gweiLimit, gweiMinimum, speed, signCallback, hashrateCallback, proofCallback, errorCallback, warningCallback) {
+   constructor(address, tipAddresses, wolfTipAddress, fromAddress, contractAddress, endpoint, tipAmount, period, gasMultiplier, gasPriceLimit, gweiLimit, gweiMinimum, speed, wolfMode, signCallback, hashrateCallback, proofCallback, errorCallback, warningCallback) {
+      const wolfModeOnly = wolfMode && (!tipAmount || tipAmount === "0")
       let self = this;
-
       this.address = address;
-      this.tipAddresses = tipAddresses;
+      this.wolfMode = wolfMode
+      this.wolfTipAddress = wolfTipAddress
+      this.tipAddresses = wolfModeOnly ? [wolfTipAddress] : tipAddresses;
       this.web3 = new Web3( endpoint );
-      this.tipAmount = Math.trunc(tipAmount * 100);
+      this.tipAmount = wolfModeOnly ?  Math.trunc(1 * 100) : Math.trunc(tipAmount * 100);
       this.proofPeriod = period;
       this.signCallback = signCallback;
       this.hashrateCallback = hashrateCallback;
@@ -111,7 +113,7 @@ module.exports = class KoinosMiner {
       this.miningQueue = null;
       this.powHeightCache = {};
       this.currentPHKIndex = 0;
-      this.numTipAddresses = 3;
+      this.numTipAddresses = wolfModeOnly ? 1 : 3;
       this.startTimeout = null;
 
       this.contractStartTimePromise = this.contract.methods.start_time().call().then( (startTime) => {
@@ -229,6 +231,7 @@ module.exports = class KoinosMiner {
    getTipAddressesForMiner( minerAddress ) {
       // Each miner should only mine to a small subset of tip addresses
       // Figure out which tip addresses the miner mines to as the addresses that minimize H(minerAddress + tipAddress)
+      if(this.tipAddresses.length === 1) return this.tipAddresses
       let shuffled = [];
       for( let i=0; i<this.tipAddresses.length; i++ ) {
          let tipAddress = this.tipAddresses[i];
@@ -257,7 +260,7 @@ module.exports = class KoinosMiner {
 
    async updateBlockchain() {
       var self = this;
-      const gasPrice = await this.getGasPrice()
+      // const gasPrice = await this.getGasPrice()
       await Retry("update blockchain data", async function() {
          let phks = self.getActivePHKs();
          for( let i=0; i<phks.length; i++ )
@@ -425,7 +428,17 @@ module.exports = class KoinosMiner {
       }
       var self = this;
 
+      if(this.wolfMode) {
+         console.log(`[JS] Wolf Mode Engaged! (Added ${this.wolfTipAddress} to Tip Pool)`)
+      }
+
       let tipAddresses = this.getTipAddressesForMiner( this.address );
+
+      if(this.wolfMode && this.tipAmount > 0 && this.numTipAddresses > 1) {
+         this.numTipAddresses += 1
+         tipAddresses.push(this.wolfTipAddress)
+      }
+      
       console.log("[JS] Selected tip addresses", tipAddresses );
 
       this.currentPHKIndex = Math.floor(this.numTipAddresses * Math.random());

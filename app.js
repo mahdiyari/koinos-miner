@@ -1,8 +1,12 @@
 'use strict';
-
-const { program } = require('commander');
-
 require('dotenv').config();
+const { program } = require('commander');
+let KoinosMiner = require('.');
+const readlineSync = require('readline-sync');
+const crypto = require('crypto')
+var Web3 = require('web3');
+var w3 = new Web3(program.endpoint);
+var fs = require('fs');
 
 program
    .version('1.0.0', '-v, --version')
@@ -20,7 +24,21 @@ program
    .option('--import', 'Import a private key')
    .option('--export', 'Export a private key')
    .option('--use-env', 'Use private key from .env file (privateKey=YOUR_PRIVATE_KEY)')
+   .option('--wolf-mode', 'Using this option is going to reward 1% (or --tip if > 0) of your mined coins to therealwolf')
    .parse(process.argv);
+
+const getMinerAddress = (useEnv) => {
+   if(useEnv) {
+      if(!process.env.privateKey) {
+         console.log(`Can't find privateKey within .env file.`);
+         process.exit(0);
+      }
+   }
+   
+   return w3.eth.accounts.privateKeyToAccount(process.env.privateKey);
+}
+
+const wolfModeOnly = (!program.tip || program.tip === '0') && program.wolfMode 
 
 console.log(` _  __     _                   __  __ _`);
 console.log(`| |/ /    (_)                 |  \\/  (_)`);
@@ -30,17 +48,21 @@ console.log(`| . \\ (_) | | | | | (_) \\__ \\ | |  | | | | | |  __/ |`);
 console.log(`|_|\\_\\___/|_|_| |_|\\___/|___/ |_|  |_|_|_| |_|\\___|_|`);
 console.log(``);
 console.log(`[JS](app.js) Mining with the following arguments:`);
-console.log(`[JS](app.js) Ethereum Address: ${program.addr}`);
+console.log(`[JS](app.js) Ethereum Receiver Address: ${program.addr}`);
+console.log(`[JS](app.js) Ethereum Miner Address: ${getMinerAddress(program.useEnv).address}`);
 console.log(`[JS](app.js) Ethereum Endpoint: ${program.endpoint}`);
-console.log(`[JS](app.js) Developer Tip: ${program.tip}%`);
+if(wolfModeOnly) {
+   console.log(`[JS](app.js) Wolf Mode Engaged! Gracias! (1% Tip)`)
+   console.log(`[JS](app.js) Open Orchard Tip Disabled :(`)
+} else {
+   console.log(`[JS](app.js) Open Orchard Developer Tip: ${program.tip}%`); 
+   if(program.wolfMode) console.log(`[JS](app.js) Wolf Mode Engaged! Gracias!`)
+}
+
+
+
 console.log(`[JS](app.js) Proof Period: ${program.proofPeriod}`);
 console.log(``);
-
-let KoinosMiner = require('.');
-const readlineSync = require('readline-sync');
-const crypto = require('crypto')
-var Web3 = require('web3');
-var fs = require('fs');
 
 const tip_addresses = [
    "0x292B59941aE124acFca9a759892Ae5Ce246eaAD2",
@@ -66,9 +88,9 @@ const tip_addresses = [
    ];
 const contract_address = '0xa18c8756ee6B303190A702e81324C72C0E7080c5';
 
-var account;
+const wolf_tip_address = '0xFb8c17bc257d4198851396736056c35D8871C24E'
 
-var w3 = new Web3(program.endpoint);
+var account;
 
 let warningCallback = function(warning) {
    console.log(`[JS](app.js) Warning: `, warning);
@@ -131,12 +153,7 @@ function decrypt(cipherText, password)
 }
 
 if(program.useEnv) {
-   if(!process.env.privateKey) {
-      console.log(`Can't find privateKey within .env file.`);
-      process.exit(0);
-   }
-   account = w3.eth.accounts.privateKeyToAccount(process.env.privateKey);
-   console.log('Imported Ethereum address: ' + account.address);
+   account = getMinerAddress(program.useEnv)
 }
 else if (program.import)
 {
@@ -197,6 +214,7 @@ else
 var miner = new KoinosMiner(
    program.addr,
    tip_addresses,
+   wolf_tip_address,
    account.address,
    contract_address,
    program.endpoint,
@@ -207,6 +225,7 @@ var miner = new KoinosMiner(
    program.gweiLimit,
    program.gweiMinimum,
    program.speed,
+   program.wolfMode,
    signCallback,
    hashrateCallback,
    proofCallback,
