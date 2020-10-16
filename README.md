@@ -121,11 +121,9 @@ Options:
 
 **Gwei Minimum [NEW] **: The `--gwei-minimum` argument specifies the minimum amount of gas (in gwei unit) to be paid for a proof submission.
 
-*Info:* `--gwei-limit` and `--gwei-minimum` were added later to make it easier, as gwei prices are simpler to read. To provide backwards compatability, `--gas-price-limit` is still supported and will be used if `--gwei-limit` is not set. However, `--gwei-price-limit` is recommended.
-
-> 1 Gwei = 1000000000 Gas (https://eth-converter.com/)
-
-A more detailed explanation of the different miner configurations can be found in the [Koinos GUI Miner](https://github.com/open-orchard/koinos-gui-miner) `README.md`.
+- *Info:* `--gwei-limit` and `--gwei-minimum` were added later to make it easier, as gwei prices are simpler to read. To provide backwards compatability, `--gas-price-limit` is still supported and will be used if `--gwei-limit` is not set. However, `--gwei-price-limit` is recommended.
+- 1 Gwei = 1000000000 Gas (https://eth-converter.com/)
+- A more detailed explanation of the different miner configurations can be found in the [Koinos GUI Miner](https://github.com/open-orchard/koinos-gui-miner) `README.md`.
 
 ## Key Management
 
