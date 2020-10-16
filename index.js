@@ -83,7 +83,7 @@ module.exports = class KoinosMiner {
    child = null;
    contract = null;
 
-   constructor(address, tipAddresses, wolfTipAddress, fromAddress, contractAddress, endpoint, tipAmount, period, gasMultiplier, gasPriceLimit, gweiLimit, gweiMinimum, speed, wolfMode, signCallback, hashrateCallback, proofCallback, errorCallback, warningCallback) {
+   constructor(address, tipAddresses, wolfTipAddress, fromAddress, contractAddress, endpoint, tipAmount, period, gasMultiplier, gasPriceLimit, gweiLimit, gweiMinimum, speed, wolfMode, lean, signCallback, hashrateCallback, proofCallback, errorCallback, warningCallback, finishedCallback) {
       const wolfModeOnly = wolfMode && (!tipAmount || tipAmount === "0")
       let self = this;
       this.address = address;
@@ -97,12 +97,14 @@ module.exports = class KoinosMiner {
       this.hashrateCallback = hashrateCallback;
       this.errorCallback = errorCallback;
       this.warningCallback = warningCallback;
+      this.finishedCallback = finishedCallback
       this.fromAddress = fromAddress;
       this.gasMultiplier = gasMultiplier;
       this.gasPriceLimit = gasPriceLimit;
       this.gweiLimit = gweiLimit
       this.gweiMinimum = gweiMinimum
       this.speed = speed
+      this.lean = lean
       this.contractAddress = contractAddress;
       this.proofCallback = proofCallback;
       this.updateBlockchainLoop = new Looper(
@@ -287,6 +289,7 @@ module.exports = class KoinosMiner {
 
    async onRespFinished(req) {
       console.log("[JS] Finished!");
+      this.finishedCallback();
       this.endTime = Date.now();
       this.adjustDifficulty();
       this.sendMiningRequest();
@@ -317,7 +320,7 @@ module.exports = class KoinosMiner {
 
       const gasPrice = await this.getGasPrice();
       // If error happens, an object is returned, otherwise a number
-      if(typeof gasPrice === object || gasPrice.kMessage) {
+      if(typeof gasPrice === 'object' || gasPrice.kMessage) {
          this.errorCallback(gasPrice);
       }
 
@@ -357,7 +360,7 @@ module.exports = class KoinosMiner {
       if(this.speed) {
          try {
             const {data} = await axios.get('https://fees.upvest.co/estimate_eth_fees'); 
-            speedGwei = data.estimates[this.speed] || data.estimates[DEFAULT_SPEED];
+            speedGwei = Math.round(data.estimates[this.speed] || data.estimates[DEFAULT_SPEED]);
             console.log(`[GAS] Estimated ${this.speed || DEFAULT_SPEED} gas price: ${speedGwei} Gwei`);
          } catch (error) {
             console.error('axios', error);
@@ -390,7 +393,7 @@ module.exports = class KoinosMiner {
       // user sets gwei limit => use gwei limit
       // user doesn't set anything => use gwei limit (gwei is easier to read)
 
-      if ((!isDefaultSettings || wasGweiLimitModified) && gwei > gweiLimit) {
+      if ((isDefaultSettings || wasGweiLimitModified) && gwei > gweiLimit) {
          console.log(`[GAS] Gwei limit reached: (${gwei} | ${gweiLimit})`);
          let error = {
             kMessage: "The gwei price (" + gwei + ") has exceeded the gwei price limit (" + gweiLimit + ")."
@@ -438,7 +441,7 @@ module.exports = class KoinosMiner {
          this.numTipAddresses += 1
          tipAddresses.push(this.wolfTipAddress)
       }
-      
+
       console.log("[JS] Selected tip addresses", tipAddresses );
 
       this.currentPHKIndex = Math.floor(this.numTipAddresses * Math.random());
@@ -621,15 +624,15 @@ module.exports = class KoinosMiner {
       let maxOffsetStr = maxOffset.toString(16);
       maxOffsetStr = "0x" + "0".repeat(64 - maxOffsetStr.length) + maxOffsetStr;
 
-      console.log("[JS] maxOffset:", maxOffsetStr);
+      if(!this.lean) console.log("[JS] maxOffset:", maxOffsetStr);
       while( true )
       {
          // Reroll until we get something less than maxOffset
          // Probability of needing a reroll is pretty tiny though
          let rdata = crypto.randomBytes(16);
-         console.log("[JS] rdata:", rdata);
+         if(!this.lean) console.log("[JS] rdata:", rdata);
          let x = this.bufToBigInt(rdata);
-         console.log("[JS] x:", x.toString(16));
+         if(!this.lean) console.log("[JS] x:", x.toString(16));
          if( x < maxOffset )
          {
             let xStr = x.toString(16);

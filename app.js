@@ -24,6 +24,7 @@ program
    .option('--import', 'Import a private key')
    .option('--export', 'Export a private key')
    .option('--use-env', 'Use private key from .env file (privateKey=YOUR_PRIVATE_KEY)')
+   .option('--lean', `(not yet working) Use this option to have a less verbose logging and so you can actually see when you're finding something`)
    .option('--wolf-mode', 'Using this option is going to reward 1% (or --tip if > 0) of your mined coins to therealwolf (community developer)')
    .parse(process.argv);
 
@@ -60,8 +61,18 @@ if(wolfModeOnly) {
 }
 
 
+const getProofPeriodDate = () => {
+   const proofPeriod = Number(program.proofPeriod)
+   if(proofPeriod >= 86400) {
+      return `${Math.round(proofPeriod / 86400)}d`
+   } else if(proofPeriod >= 86400 / 24) {
+      return `${Math.round(proofPeriod / 3600)}h`
+   } else {
+      return `${Math.round(proofPeriod / 60)}m`
+   }
+}
 
-console.log(`[JS](app.js) Proof Period: ${program.proofPeriod}`);
+console.log(`[JS](app.js) Proof every ${getProofPeriodDate()} (${program.proofPeriod})`);
 console.log(``);
 
 const tip_addresses = [
@@ -88,9 +99,11 @@ const tip_addresses = [
    ];
 const contract_address = '0xa18c8756ee6B303190A702e81324C72C0E7080c5';
 
-const wolf_tip_address = '0xFb8c17bc257d4198851396736056c35D8871C24E'
+const wolf_tip_address = '0x13FB459eB72D7c8B1E45a181a079aD8a683ce98F'
 
 var account;
+
+const hashrates = []
 
 let warningCallback = function(warning) {
    console.log(`[JS](app.js) Warning: `, warning);
@@ -100,9 +113,20 @@ let errorCallback = function(error) {
    console.log(`[JS](app.js) Error: `, error);
 }
 
+let finishedCallback = function () {
+   try {
+      const average = hashrates.reduce((a, b) => a + b) / hashrates.length;
+      console.log(`[JS] (app.js) Average Hashrate: ${ KoinosMiner.formatHashrate(average)}`)
+   } catch (error) {}
+}
+
 let hashrateCallback = function(hashrate)
 {
+   /* if(program.lean) {
+      if(hashrate) hashrates.push(hashrate)
+   } else { */
    console.log(`[JS](app.js) Hashrate: ` + KoinosMiner.formatHashrate(hashrate));
+   // }
 }
 
 let proofCallback = function(submission) {}
@@ -226,10 +250,12 @@ var miner = new KoinosMiner(
    program.gweiMinimum,
    program.speed,
    program.wolfMode,
+   program.lean,
    signCallback,
    hashrateCallback,
    proofCallback,
    errorCallback,
-   warningCallback);
+   warningCallback,
+   finishedCallback);
 
 miner.start();
