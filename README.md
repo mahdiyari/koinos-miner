@@ -97,10 +97,10 @@ Options:
   -s, --speed <speed>                [NEW] How fast should the transaction be: slow | medium | optimal | fast | fastest (default: "optimal")
                                      (https://fees.upvest.co/estimate_eth_fees)`
   --import                           Import a private key
-  --use-env                          [NEW] Use private key from .env file (privateKey=YOUR_PRIVATE_KEY)
   --export                           Export a private key
+  --use-env                          [NEW] Use private key from .env file (privateKey=YOUR_PRIVATE_KEY)
+  --wolf-mode                        [NEW] Using this option is going to reward 1% (or --tip if > 0) of your mined coins to the maintainer of this version
   -h, --help                         display help for command
-  --wolf-mode                        [NEW] Using this option is going to reward 1% (or --tip if > 0) of your mined coins to [therealwolf](https://github.com/therealwolf42/koinos-miner)
 ```
 
 **Recipient Address**: The `--addr` argument specifies the recipient address, this is where KOIN will be rewarded.
