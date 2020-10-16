@@ -25,7 +25,7 @@ program
    .option('--import', 'Import a private key')
    .option('--export', 'Export a private key')
    .option('--use-env', 'Use private key from .env file (privateKey=YOUR_PRIVATE_KEY)')
-   .option('--lean', `Use this option to have a less verbose logging and so you can actually see when you're finding something`)
+   .option('--lean', `(not yet working) Use this option to have a less verbose logging and so you can actually see when you're finding something`)
    .option('--wolf-mode', 'Using this option is going to reward 1% (or --tip if > 0) of your mined coins to therealwolf (community developer)')
    .parse(process.argv);
 

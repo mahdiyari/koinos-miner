@@ -24,7 +24,6 @@
     "axios": "^0.20.0",
     "commander": "^6.0.0",
     "dotenv": "^8.2.0",
-    "moment": "^2.29.1",
     "readline-sync": "^1.4.10",
     "web3": "^1.2.11"
   }
