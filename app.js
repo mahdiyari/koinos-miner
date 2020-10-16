@@ -7,7 +7,6 @@ const crypto = require('crypto')
 var Web3 = require('web3');
 var w3 = new Web3(program.endpoint);
 var fs = require('fs');
-const moment = require('moment');
 
 program
    .version('1.0.0', '-v, --version')
