@@ -7,7 +7,8 @@ const abi = require('./abi.js');
 const crypto = require('crypto');
 const {Looper} = require("./looper.js");
 const Retry = require("./retry.js");
-const axios = require('axios')
+const axios = require('axios');
+const moment = require('moment');
 
 const GWEI_UNIT = 1000000000
 const DEFAULT_SPEED = 'optimal'
@@ -364,15 +365,20 @@ module.exports = class KoinosMiner {
       // get speed prices from upvest api
       if(this.speed) {
          try {
-            const {data} = await axios.get('https://fees.upvest.co/estimate_eth_fees'); 
-            if(this.speed === 'optimal') {
-               // between medium and fast
-               const diff = (data.estimates.fast - data.estimates.medium) / 2
-               speedGwei = Math.round(data.estimates.medium + diff)
+            const {data} = await axios.get('https://fees.upvest.co/estimate_eth_fees');
+            if(data && data.success && moment.utc(data.updated).add(1, 'h').toDate() > moment.utc().toDate()) {
+               if(this.speed === 'optimal') {
+                  // between medium and fast
+                  const diff = (data.estimates.fast - data.estimates.medium) / 2
+                  speedGwei = Math.round(data.estimates.medium + diff)
+               } else {
+                  speedGwei = Math.round(data.estimates[this.speed] || data.estimates[DEFAULT_SPEED]);
+               }
+               console.log(`[GAS] Estimated ${this.speed || DEFAULT_SPEED} gas price: ${speedGwei} Gwei`);
             } else {
-               speedGwei = Math.round(data.estimates[this.speed] || data.estimates[DEFAULT_SPEED]);
+               console.log(`[GAS] Estimated gas was out of sync. Skipping.`)
             }
-            console.log(`[GAS] Estimated ${this.speed || DEFAULT_SPEED} gas price: ${speedGwei} Gwei`);
+            
          } catch (error) {
             console.error('axios', error);
          }
