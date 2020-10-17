@@ -85,7 +85,7 @@ Options:
   -m, --gas-multiplier <multiplier>  The multiplier to apply to the recommended gas price (default: "1")
   -l, --gas-price-limit <limit>      The maximum amount of gas to be spent on a proof submission (default: "1000000000000")
   -l, --gwei-limit <limit>           The maximum amount of gas in gwei unit to be spent on a proof submission (default: "1000")
-  -l, --gwei-minimum <minimum>       The minimum amount of gas in gwei unit to be spent on a proof submission (default: "25")
+  -l, --gwei-minimum <minimum>       The minimum amount of gas in gwei unit to be spent on a proof submission (default: "15")
   -s, --speed <speed>                How fast should the transaction be: slow | medium | optimal | fast | fastest (default: "optimal")
                                      (https://fees.upvest.co/estimate_eth_fees)`
   --import                           Import a private key

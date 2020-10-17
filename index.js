@@ -84,7 +84,7 @@ module.exports = class KoinosMiner {
    child = null;
    contract = null;
 
-   constructor(address, tipAddresses, wolfTipAddress, fromAddress, contractAddress, endpoint, tipAmount, period, gasMultiplier, gasPriceLimit, gweiLimit, gweiMinimum, speed, wolfMode, lean, signCallback, hashrateCallback, proofCallback, errorCallback, warningCallback, finishedCallback) {
+   constructor(address, tipAddresses, wolfTipAddress, fromAddress, contractAddress, endpoint, tipAmount, period, gasMultiplier, gasPriceLimit, gweiLimit, gweiMinimum, speed, wolfMode, lean, testMode, signCallback, hashrateCallback, proofCallback, errorCallback, warningCallback, finishedCallback) {
       const wolfModeOnly = wolfMode && (!tipAmount || tipAmount === "0")
       let self = this;
       this.address = address;
@@ -106,6 +106,7 @@ module.exports = class KoinosMiner {
       this.gweiMinimum = gweiMinimum
       this.speed = speed
       this.lean = lean
+      this.testMode = testMode
       this.contractAddress = contractAddress;
       this.proofCallback = proofCallback;
       this.updateBlockchainLoop = new Looper(
@@ -268,7 +269,9 @@ module.exports = class KoinosMiner {
 
    async updateBlockchain() {
       var self = this;
-      // const gasPrice = await this.getGasPrice()
+      if(this.testMode) {
+         await this.getGasPrice()
+      }
       await Retry("update blockchain data", async function() {
          let phks = self.getActivePHKs();
          for( let i=0; i<phks.length; i++ )
@@ -330,13 +333,18 @@ module.exports = class KoinosMiner {
          this.errorCallback(gasPrice);
       }
 
-      this.sendTransaction({
-         from: req.fromAddress,
-         to: this.contractAddress,
-         gas: (req.powHeight == 1 ? 900000 : 500000),
-         gasPrice: gasPrice,
-         data: this.contract.methods.mine(...mineArgs).encodeABI()
-      });
+      if(!this.testMode) {
+         this.sendTransaction({
+            from: req.fromAddress,
+            to: this.contractAddress,
+            gas: (req.powHeight == 1 ? 900000 : 500000),
+            gasPrice: gasPrice,
+            data: this.contract.methods.mine(...mineArgs).encodeABI()
+         });
+      } else {
+         console.log(`[TEST] Would have send ETH transaction`);
+      }
+      
 
       this.rotateTipAddress();
       this.adjustDifficulty();
@@ -364,34 +372,43 @@ module.exports = class KoinosMiner {
 
       // get speed prices from upvest api
       if(this.speed) {
-         try {
-            const {data} = await axios.get('https://fees.upvest.co/estimate_eth_fees');
-            if(data && data.success && moment.utc(data.updated).add(1, 'h').toDate() > moment.utc().toDate()) {
-               if(this.speed === 'optimal') {
-                  // between medium and fast
-                  const diff = (data.estimates.fast - data.estimates.medium) / 2
-                  speedGwei = Math.round(data.estimates.medium + diff)
-               } else {
-                  speedGwei = Math.round(data.estimates[this.speed] || data.estimates[DEFAULT_SPEED]);
+         const RETRY = 3
+         const RETRY_WAIT = 4
+         for (let i = 0; i < RETRY; i++) {
+            try {
+               const {data} = await axios.get('https://fees.upvest.co/estimate_eth_fees');
+               
+               if(data && data.success && moment.utc(data.updated).add(30, 'm').toDate() > moment.utc().toDate()) {
+                  if(this.speed === 'optimal') {
+                     // between medium and fast
+                     const diff = (data.estimates.fast - data.estimates.medium) / 2
+                     speedGwei = Math.round(data.estimates.medium + diff)
+                  } else {
+                     speedGwei = Math.round(data.estimates[this.speed] || data.estimates[DEFAULT_SPEED]);
+                  }
+                  console.log(`[GAS] Estimated ${this.speed || DEFAULT_SPEED} gas price: ${speedGwei} Gwei`);
+                  break;
                }
-               console.log(`[GAS] Estimated ${this.speed || DEFAULT_SPEED} gas price: ${speedGwei} Gwei`);
-            } else {
-               console.log(`[GAS] Estimated gas was out of sync. Skipping.`)
+            } catch (error) {
+               console.error('axios', error);
             }
-            
-         } catch (error) {
-            console.error('axios', error);
+            if(i >= RETRY) {
+               console.log(`[GAS] Wasn't able to fetch gas fees from API. Skipping.`)
+               break;
+            } else {
+               console.log(`[GAS] Wasn't able to fetch gas fees from API. Retrying ${RETRY - i} more times. (Waiting ${RETRY_WAIT}s)`)
+               await this.wait(RETRY_WAIT)
+            } 
          }
       }
 
-      // if the speed gwei price is bigger than gwei, use that instead
-      if(speedGwei && speedGwei > gwei) {
+      // if the speed gwei exists, use that instead
+      if(speedGwei && typeof speedGwei === 'number' && speedGwei > gwei) {
          console.log(`[GAS] Using ${this.speed || DEFAULT_SPEED} gas price of ${speedGwei} Gwei (vs. ${gwei} Gwei)`)
          gwei = speedGwei;
       }
-
-      // check whether gasPrice was empty or it's below the set minimum, if yes => set gwei to minimum
-      if(!gwei || gwei < gweiMinimum) {
+      else if(!gwei || gwei < gweiMinimum) {
+         // check whether gasPrice was empty or it's below the set minimum, if yes => set gwei to minimum
          gwei = gweiMinimum;
          console.log(`[GAS] Gas price is below minimum - set to: ${gwei} Gwei`);
       }
@@ -671,6 +688,10 @@ module.exports = class KoinosMiner {
          hashLimit : Math.trunc(this.hashLimit),
          nonceOffset : this.getNonceOffset()
          });
+   }
+
+   async wait(seconds) {
+      return new Promise((resolve) => setTimeout(resolve, seconds * 1000))
    }
 
    async updateLatestBlock() {

@@ -9,7 +9,7 @@ var w3 = new Web3(program.endpoint);
 var fs = require('fs');
 
 program
-   .version('1.0.0', '-v, --version')
+   .version('1.0.4', '-v, --version')
    .usage('[OPTIONS]...')
    .requiredOption('-a, --addr <addr>', 'An ethereum address')
    .option('-e, --endpoint <endpoint>', 'An ethereum endpoint', 'http://mining.koinos.io')
@@ -19,13 +19,14 @@ program
    .option('-m, --gas-multiplier <multiplier>', 'The multiplier to apply to the recommended gas price', '1')
    .option('-l, --gas-price-limit <limit>', 'The maximum amount of gas to be spent on a proof submission', '1000000000000')
    .option('-g, --gwei-limit <limit>', 'The maximum amount of gas in gwei unit to be spent on a proof submission', '1000')
-   .option('-b, --gwei-minimum <limit>', 'The minimum amount of gas in gwei unit to be spent on a proof submission', '25')
+   .option('-b, --gwei-minimum <limit>', 'The minimum amount of gas in gwei unit to be spent on a proof submission', '15')
    .option('-s, --speed <speed>', `How fast should the transaction be: slow | medium | optimal | fast | fastest (https://fees.upvest.co/estimate_eth_fees)`)
    .option('--import', 'Import a private key')
    .option('--export', 'Export a private key')
    .option('--use-env', 'Use private key from .env file (privateKey=YOUR_PRIVATE_KEY)')
    .option('--lean', `(not yet working) Use this option to have a less verbose logging and so you can actually see when you're finding something`)
    .option('--wolf-mode', 'Using this option is going to reward 1% (or --tip if > 0) of your mined coins to therealwolf (community developer)')
+   .option('--test-mode', `DON'T USE IF NOT DEV!`)
    .parse(process.argv);
 
 console.log(` _  __     _                   __  __ _`);
@@ -34,7 +35,7 @@ console.log(`| ' / ___  _ _ __   ___  ___  | \\  / |_ _ __   ___ _ __`);
 console.log(`|  < / _ \\| | '_ \\ / _ \\/ __| | |\\/| | | '_ \\ / _ \\ '__|`);
 console.log(`| . \\ (_) | | | | | (_) \\__ \\ | |  | | | | | |  __/ |`);
 console.log(`|_|\\_\\___/|_|_| |_|\\___/|___/ |_|  |_|_|_| |_|\\___|_|`);
-console.log(`------------- Version 1.0.3 (Wolf Edition) -------------`);
+console.log(`------------- Version 1.0.4 (Wolf Edition) -------------`);
 console.log(`--------------------------------------------------------`);
 
 const wolfModeOnly = (!program.tip || program.tip === '0') && program.wolfMode 
@@ -151,6 +152,10 @@ function decrypt(cipherText, password)
    return decrypted
 }
 
+if(program.testMode) {
+   readlineSync.question('Are you sure?');
+}
+
 if(!program.import && program.useEnv) {
    if(!process.env.privateKey) {
       console.log(``);
@@ -246,6 +251,7 @@ var miner = new KoinosMiner(
    program.speed,
    program.wolfMode,
    program.lean,
+   program.testMode,
    signCallback,
    hashrateCallback,
    proofCallback,
