@@ -10,7 +10,7 @@ COPY . /root/koinos-miner
 
 RUN npm install --unsafe-perm
 
-ENV privateKey
+#ENV privateKey
 
 ENTRYPOINT [ "npm", "start", "--" ]
 
