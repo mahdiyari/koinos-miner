@@ -210,9 +210,6 @@ void hash_secured_struct( struct bn* res, struct secured_struct* ss )
     * recipient_offset
     */
 
-   char bn_str[78];
-   memset(bn_str, 0, sizeof(78));
-
    struct bn recipient_offset, split_percent_offset, array_size;
    bignum_from_int( &recipient_offset, 6 * 32 );
    bignum_endian_swap( &recipient_offset );
@@ -524,7 +521,7 @@ int main( int argc, char** argv )
                   }
                   else
                   {
-                     #pragma omp crticial
+                     #pragma omp critical
                      {
                         // Two threads could find a valid proof at the same time (unlikely, but possible).
                         // We want to return the more difficult proof
