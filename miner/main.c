@@ -338,7 +338,6 @@ int main( int argc, char** argv )
    struct bn seed, bn_i;
 
    char bn_str[78];
-   char bn_str2[78];
 
    SHA3_CTX c;
 
@@ -511,7 +510,7 @@ int main( int argc, char** argv )
             {
                work( &t_result, &secured_struct_hash, &t_nonce, word_buffer );
 
-               if( bignum_cmp( &t_result, &ss.target ) < 0)
+               if( bignum_cmp( &t_result, &ss.target ) <= 0)
                {
                   if( !words_are_unique( &secured_struct_hash, &t_nonce, word_buffer ) )
                   {
@@ -555,11 +554,10 @@ int main( int argc, char** argv )
       }
       else
       {
-         bignum_inc( &result );
          bignum_to_string( &nonce, bn_str, sizeof(bn_str), false );
-         bignum_to_string( &result, bn_str2, sizeof(bn_str2), false );
-         fprintf( stdout, "N:%s;%s;\n", bn_str , bn_str2);
-         fprintf(stderr, "[C] Nonce: %s; Difficulty: %s\n", bn_str, bn_str2);
+         fprintf( stdout, "N:%s;\n", bn_str );
+
+         fprintf(stderr, "[C] Nonce: %s\n", bn_str);
          fflush(stderr);
       }
 
